@@ -1,0 +1,51 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+# ChangeLog  BonDriver_FSUSB2i
+
+0.1.5	2016-02-19
+	Changed frequency boundaries for CATV bands  [it9175.c]
+	Fixed small bugs  [tsthread.c]
+
+
+0.1.4	2016-02-12
+	Modified OpenTuner(), CloseTuner() procedures  [BonTuner.cpp]
+	Changed the TS buffer structure  [tsthread.c]
+
+
+0.1.3	2016-01-09
+	Fixed a freq. expression (failed to set channel, >= UHF 39ch)  [it9175.c/it9175_set_params()]
+	Changed the TS buffer structure  [tsthread.c]
+	Reduced/Optimized the USB bulk transfer length (TS_BlockSize, TS_FrameSize)  [tsbuff.h]
+
+
+0.1.2	2015-12-30
+	Changed the TS buffer structure  [tsthread.c]
+	Added: dump hex-values about configuration EEPROM when the EEPROM data is invalid  [it9175.c/it9175_read_config()]
+	Reduced/Optimized the USB bulk transfer length (TS_BlockSize, TS_FrameSize) and the number of Async-IO requests (TS_MaxNumIO)  [tsbuff.h]
+	Reduced the time spent in SetChannel,  ingore it9175_waitStream  [BonTuner.cpp/SetChannel()]
+
+
+0.1.1	2015-12-25
+	Enabled NULL packet filter (PID=1FFF)
+	Fixed a possible freeze  [BonTuner.cpp/WaitTsStream()]
+	Fixed a possible deadlock  [tsthread.c]
+
+
+0.1.0	2015-12-23
+	first release
+
+
+## End
+signed by "trinity19683.gpg-pub" 2015-12-13
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBCAAGBQJWxupGAAoJEB0tpC02lUUYM8oH/jgIQzpgFFiHFQIg8E28u0fw
+CH/15NJXzFloYKMn2Bi7VfsQGvltgnXXp5/T6W2aiV0ZlQCeJAfdMMYh22KsTI/Z
+GCoMkLPBc+rQ/mM7TNFwXLpX8Bi16Ws6GGbJGyi8TxZUs8/zAvAAf2BnRfpCL8yv
+zI6w+9QBfQweoHZ1MRhrj3HfPhcvoj9WAGRS9FzKsQKuM9xZp0rpdeysmV8q/DVD
+r6IZlUhuOqmbIGeILSed1VfAiM0U5wVjSWX1SlQmHXyTzLt96MVWoW85Ri6vd1lv
+yi/CDqy/U6G8i3LzAtUZ75R5FO4bzhQg2/WdK+bvSe7KQzZWB+ce0j4UC3oxKMA=
+=vEaV
+-----END PGP SIGNATURE-----

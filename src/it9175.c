@@ -85,6 +85,38 @@ static int writeRegMask(struct state_st* const s, const uint32_t reg, const uint
 	return writeRegs(s, reg, &tmp, 1);
 }
 
+static uint8_t calc_lrc(uint8_t* const data, const int len)
+{
+	int i;
+	uint8_t result = 0;
+	for (i = 0; i < len; i++) {
+		result ^= data[i];
+	}
+	return result;
+}
+
+static int transmitCard(struct state_st* const s, const uint8_t nad, const uint8_t pcb,  const uint8_t* const data, const int len)
+{
+	s->buf[REQ_HDR_LEN + 0] = len + 4;
+	s->buf[REQ_HDR_LEN + 1] = nad;
+	s->buf[REQ_HDR_LEN + 2] = pcb;
+	s->buf[REQ_HDR_LEN + 3] = len; // LEN
+	memcpy(s->buf + REQ_HDR_LEN + 4, data, len);
+	s->buf[REQ_HDR_LEN + 4 + len] = calc_lrc(s->buf + REQ_HDR_LEN + 2, len + 2); // EDC
+	return it9175_ctrl_msg(s, CMD_CFG_WR, 0x80, 5 + len, 0);
+}
+
+static int receiveCard(struct state_st* const s, const uint8_t* const data, const int len)
+{
+	int r;
+	s->buf[REQ_HDR_LEN] = len;
+	r = it9175_ctrl_msg(s, CMD_CFG_RD, 0x80, 1, len);
+	if (0 == r) {
+		memcpy(data, &s->buf[ACK_HDR_LEN], len);
+	}
+	return r;
+}
+
 /* obtain chip version, type, firmware status */
 static int it9175_identify_state(struct state_st* const s)
 {
@@ -762,6 +794,15 @@ int it9175_create(it9175_state* const  state, struct usb_endpoint_st * const pus
 		warn_info(ret,"failed");
 		return -10;
 	}
+	st->card_initialized = 0;
+	st->card_seq = 0;
+	st->card_mutex = NULL;
+	st->card_atr = NULL;
+	st->card_atr_size = 0;
+	if ((ret = uthread_mutex_init(&st->card_mutex)) != 0) {
+		warn_info(ret, "failed");
+		return -11;
+	}
 	dmsg(" Init done!");
 
 	return 0;
@@ -789,6 +830,11 @@ int it9175_destroy(const it9175_state state)
 		warn_info(ret,"mutex_destroy failed");
 		return -2;
 	}
+	if ((ret = uthread_mutex_destroy(s->card_mutex))) {
+		warn_info(ret, "mutex_destroy failed");
+		return -11;
+	}
+	free(s->card_atr);
 	free(s);
 	return 0;
 }
@@ -809,6 +855,134 @@ int it9175_setFreq(const it9175_state state, const unsigned int freq)
 
 	return 0;
 err1:
+	return ret;
+}
+
+static int it9175_receiveCard(struct state_st* const s, uint8_t* const data, const int buf_size, int* const received)
+{
+	int ret;
+	uint8_t remain, read_size;
+	uint8_t buf[0x20] = { 0 };
+	if ((ret = readReg(s, 0x8001cb, &remain))) goto err1;
+	*received = 0;
+	while (remain) {
+		read_size = remain > 0x20 ? 0x20 : remain;
+		if ((ret = receiveCard(s, buf, read_size))) goto err1;
+		if (*received + read_size > buf_size) {
+			if (*received < buf_size) {
+				memcpy(data + *received, buf, data + *received - buf_size);
+			}
+		}else{
+			memcpy(data + *received, buf, read_size);
+		}
+		*received += read_size;
+		if ((ret = readReg(s, 0x8001cb, &remain))) goto err1;
+	}
+	return 0;
+err1:
+	return ret;
+}
+
+static int it9175_waitCard(struct state_st* const s, const int timeout)
+{
+	int ret, i;
+	uint8_t val;
+	const int sleep_ms = 10;
+
+	for (i = 0; i < timeout; i += sleep_ms) {
+		if ((ret = readReg(s, 0x8001e8, &val))) goto err1;
+		if (0 != val)
+			return 0;
+		miliWait(sleep_ms);
+	}
+	ret = -EINVAL;
+err1:
+	return ret;
+}
+
+static int it9175_checkCard(struct state_st* const s)
+{
+	int ret;
+	uint8_t card_status;
+	if ((ret = readReg(s, 0x80fba5, &card_status)))
+		return ret;
+	if (0 != card_status) {
+		warn_info(0, "Smart card not recognized.");
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static int it9175_ifsRequest(struct state_st* const s)
+{
+	int ret, received;
+	uint8_t ifs_response[5];
+	uint8_t max_ifs_size;
+	if ((ret = writeReg(s, 0x8001ec, 1))) goto err1;
+	// S(IFS request)
+	max_ifs_size = 0xfe;
+	if ((ret = transmitCard(s, 0, 0xc1, &max_ifs_size, sizeof(max_ifs_size)))) goto err1;
+	if ((ret = it9175_waitCard(s, 1000))) goto err1;
+	if ((ret = it9175_receiveCard(s, ifs_response, sizeof(ifs_response), &received))) goto err1;
+	// 0x00 (NAD)
+	// 0xE1 (PCB, S(IFS response))
+	return 0;
+err1:
+	return ret;
+}
+
+static int it9175_initCard(struct state_st* const s)
+{
+	int ret;
+	uint8_t remain;
+	if ((ret = it9175_checkCard(s))) goto err1;
+	if ((ret = writeReg(s, 0xd8b7, 0x00))) goto err1;
+	if ((ret = writeReg(s, 0x8001eb, 0x02))) goto err1;
+	s->buf[REQ_HDR_LEN] = 0;
+	if ((ret = it9175_ctrl_msg(s, 6, 0x80, 1, 0))) goto err1;
+	if ((ret = writeReg(s, 0xd8b7, 0x01))) goto err1;
+	if ((ret = writeReg(s, 0xd8b7, 0x00))) goto err1;
+	if ((ret = writeReg(s, 0x8001eb, 0x02))) goto err1;
+	s->buf[REQ_HDR_LEN] = 0;
+	if ((ret = it9175_ctrl_msg(s, 6, 0x80, 1, 0))) goto err1;
+	if ((ret = writeReg(s, 0xd8b7, 0x01))) goto err1;
+	if ((ret = it9175_checkCard(s))) goto err1;
+	miliWait(200);
+	if ((ret = readReg(s, 0x8001cb, &remain))) goto err1;
+	if (remain) {
+		s->card_atr = calloc(remain, 1);
+		s->card_atr_size = remain;
+		if ((ret = receiveCard(s, s->card_atr, remain))) goto err1;
+	}
+	s->buf[REQ_HDR_LEN] = 1;
+	ret = it9175_ctrl_msg(s, 6, 0x80, 1, 0);
+	if (ret) goto err1;
+	ret = it9175_ifsRequest(s);
+	if (ret) goto err1;
+	return 0;
+err1:
+	return ret;
+}
+
+int it9175_transmitCard(const it9175_state state, uint8_t* const trans_buf, const int trans_size, uint8_t* const recv_buf, const int recv_buf_size, int* const recv_bytes)
+{
+	int ret = 0;
+	struct state_st* const s = state;
+	uint8_t pcb;
+	if ((ret = uthread_mutex_lock(s->card_mutex))) goto err1;
+	if (!s->card_initialized) {
+		if ((ret = it9175_initCard(state))) goto err1;
+		s->card_initialized = 1;
+	}
+	if ((ret = it9175_checkCard(s))) goto err1;
+	if ((ret = writeReg(s, 0x8001ec, 1))) goto err1;
+	pcb = (s->card_seq & 1) ? 0x40 : 0;
+	if ((ret = transmitCard(s, 0, pcb, trans_buf, trans_size))) goto err1;
+	s->card_seq++;
+	if ((ret = it9175_waitCard(s, 1000))) goto err1;
+	if ((ret = it9175_receiveCard(s, recv_buf, recv_buf_size, recv_bytes))) goto err1;
+err1:
+	uthread_mutex_unlock(s->card_mutex);
 	return ret;
 }
 

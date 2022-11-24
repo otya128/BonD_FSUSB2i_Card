@@ -23,4 +23,6 @@ int it9175_readTMCC(const it9175_state, struct TMCC_data* const);
 
 int it9175_readStatistic(const it9175_state, uint8_t* const data);
 
+int it9175_transmitCard(const it9175_state, uint8_t* const trans_buf, const int trans_size, uint8_t* const recv_buf, const int recv_buf_size, int* const recv_bytes);
+
 /*EOF*/

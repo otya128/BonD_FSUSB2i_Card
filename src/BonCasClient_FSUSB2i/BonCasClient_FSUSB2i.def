@@ -1,0 +1,29 @@
+LIBRARY BonCasClient
+EXPORTS
+	CasLinkEstablishContext = BonDriver_FSUSB2i.it9175_SCardEstablishContext
+	CasLinkTransmit = BonDriver_FSUSB2i.it9175_SCardTransmit
+	CasLinkListReadersA = BonDriver_FSUSB2i.it9175_SCardListReadersA
+	CasLinkListReadersW = BonDriver_FSUSB2i.it9175_SCardListReadersW
+	CasLinkReleaseContext = BonDriver_FSUSB2i.it9175_SCardReleaseContext
+	CasLinkConnectA = BonDriver_FSUSB2i.it9175_SCardConnectA
+	CasLinkConnectW = BonDriver_FSUSB2i.it9175_SCardConnectW
+	CasLinkDisconnect = BonDriver_FSUSB2i.it9175_SCardDisconnect
+	
+	g_rgSCardT0Pci = BonDriver_FSUSB2i.it9175_g_rgSCardT0Pci DATA
+	g_rgSCardT1Pci = BonDriver_FSUSB2i.it9175_g_rgSCardT1Pci DATA
+	g_rgSCardRawPci = BonDriver_FSUSB2i.it9175_g_rgSCardRawPci DATA
+	SCardEstablishContext = BonDriver_FSUSB2i.it9175_SCardEstablishContext
+	SCardTransmit = BonDriver_FSUSB2i.it9175_SCardTransmit
+	SCardListReadersA = BonDriver_FSUSB2i.it9175_SCardListReadersA
+	SCardFreeMemory = BonDriver_FSUSB2i.it9175_SCardFreeMemory
+	SCardListReadersW = BonDriver_FSUSB2i.it9175_SCardListReadersW
+	SCardReleaseContext = BonDriver_FSUSB2i.it9175_SCardReleaseContext
+	SCardConnectA = BonDriver_FSUSB2i.it9175_SCardConnectA
+	SCardConnectW = BonDriver_FSUSB2i.it9175_SCardConnectW
+	SCardConnect = BonDriver_FSUSB2i.it9175_SCardConnectW
+	SCardDisconnect = BonDriver_FSUSB2i.it9175_SCardDisconnect
+	SCardIsValidContext = BonDriver_FSUSB2i.it9175_SCardIsValidContext
+	SCardStatusA = BonDriver_FSUSB2i.it9175_SCardStatusA
+	SCardStatusW = BonDriver_FSUSB2i.it9175_SCardStatusW
+	SCardGetStatusChangeA = BonDriver_FSUSB2i.it9175_SCardGetStatusChangeA
+	SCardGetStatusChangeW = BonDriver_FSUSB2i.it9175_SCardGetStatusChangeW

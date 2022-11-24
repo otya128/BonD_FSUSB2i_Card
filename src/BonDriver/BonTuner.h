@@ -50,6 +50,7 @@ public:
 	static CBonTuner * m_pThis;
 	static HINSTANCE m_hModule;
 
+	const BOOL TransmitCard(BYTE *trans_buf, const int trans_size, BYTE* const recv_buf, const int recv_buf_size, int* const recv_bytes);
 protected:
 	DWORD m_dwCurSpace;
 	DWORD m_dwCurChannel;

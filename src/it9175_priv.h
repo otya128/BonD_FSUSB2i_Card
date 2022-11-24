@@ -49,6 +49,11 @@ struct state_st {
 	uint32_t freq_bd;
 	//uint32_t clock_x;
 	//uint32_t clock_a;
+	PMUTEX card_mutex;
+	uint8_t card_initialized;
+	uint8_t card_seq;
+	uint8_t card_atr_size;
+	uint8_t* card_atr;
 };
 
 static const unsigned int clock_lut_dev[] = { /* kHz */

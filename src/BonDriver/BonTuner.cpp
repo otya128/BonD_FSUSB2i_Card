@@ -36,8 +36,8 @@ CBonTuner::~CBonTuner()
 const BOOL CBonTuner::OpenTuner()
 {
 	//# if already open, close tuner
-	CloseTuner();
-	if(IsTunerOpening()) return FALSE;
+	//CloseTuner();
+	if(IsTunerOpening()) return TRUE;
 
 	try{
 		//# AllocTuner
@@ -298,6 +298,11 @@ void CBonTuner::ReadRegChannels (HKEY hPKey)
 		lstrcpyn( ptrStr, szValueName, dwMaxValueName );
 	}
 	RegCloseKey(hKey);
+}
+
+const BOOL CBonTuner::TransmitCard(BYTE* trans_buf, const int trans_size, BYTE* const recv_buf, const int recv_buf_size, int* const recv_bytes)
+{
+	return it9175_transmitCard(pDev, trans_buf, trans_size, recv_buf, recv_buf_size, recv_bytes);
 }
 
 /*EOF*/

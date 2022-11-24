@@ -113,21 +113,33 @@
     <ClCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FSUSB2I_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>BonDriver_FSUSB2i.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FSUSB2I_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>BonDriver_FSUSB2i.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FSUSB2I_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>BonDriver_FSUSB2i.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FSUSB2I_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>BonDriver_FSUSB2i.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\it9175.h" />
@@ -157,6 +169,7 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName)pp.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="..\usbops.c" />
+    <None Include="BonDriver_FSUSB2i.def" />
     <ClCompile Include="BonTuner.cpp">
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName)pp.pch</PrecompiledHeaderOutputFile>
     </ClCompile>

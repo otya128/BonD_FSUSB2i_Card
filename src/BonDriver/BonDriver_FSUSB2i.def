@@ -1,0 +1,28 @@
+LIBRARY BonDriver_FSUSB2i
+EXPORTS
+	it9175_SCardEstablishContext
+	it9175_SCardTransmit
+	it9175_SCardListReadersA
+	it9175_SCardListReadersW
+	it9175_SCardReleaseContext
+	it9175_SCardConnectA
+	it9175_SCardConnectW
+	it9175_SCardDisconnect
+	it9175_g_rgSCardT0Pci DATA
+	it9175_g_rgSCardT1Pci DATA
+	it9175_g_rgSCardRawPci DATA
+	it9175_SCardEstablishContext
+	it9175_SCardTransmit
+	it9175_SCardListReadersA
+	it9175_SCardFreeMemory
+	it9175_SCardListReadersW
+	it9175_SCardReleaseContext
+	it9175_SCardConnectA
+	it9175_SCardConnectW
+	it9175_SCardConnectW
+	it9175_SCardDisconnect
+	it9175_SCardIsValidContext
+	it9175_SCardStatusA
+	it9175_SCardStatusW
+	it9175_SCardGetStatusChangeA
+	it9175_SCardGetStatusChangeW

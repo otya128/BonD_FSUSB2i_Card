@@ -29,6 +29,19 @@ CBonTuner::~CBonTuner()
 {
 	CloseTuner();
 
+	if(pDev) {
+		it9175_destroy(pDev);
+		pDev = NULL;
+	}
+	if(m_hUsbDev) {
+		usbdevfile_free(m_hUsbDev);
+		m_hUsbDev = NULL;
+	}
+	if(m_hDev) {
+		::CloseHandle( m_hDev );
+		m_hDev = NULL;
+	}
+
 	if(m_ChannelList != NULL) ::GlobalFree(m_ChannelList);
 	m_pThis = NULL;
 }
@@ -37,6 +50,20 @@ const BOOL CBonTuner::OpenTuner()
 {
 	//# if already open, close tuner
 	//CloseTuner();
+	if(IsTunerOpening() && NULL == tsthr) {
+		try {
+			if(tsthread_create(&tsthr, &m_USBEP) != 0) {
+				throw (const DWORD)__LINE__;
+			}
+		}
+		catch (const DWORD dwErrorStep) {
+			//# Error
+			warn_msg(0,"BonDriver_FSUSB2i:OpenTuner dwErrorStep = %u", dwErrorStep);
+
+			CloseTuner();
+			return FALSE;
+		}
+	}
 	if(IsTunerOpening()) return TRUE;
 
 	try{
@@ -82,18 +109,6 @@ void CBonTuner::CloseTuner()
 		tsthread_stop(tsthr);
 		tsthread_destroy(tsthr);
 		tsthr = NULL;
-	}
-	if(pDev) {
-		it9175_destroy(pDev);
-		pDev = NULL;
-	}
-	if(m_hUsbDev) {
-		usbdevfile_free(m_hUsbDev);
-		m_hUsbDev = NULL;
-	}
-	if(m_hDev) {
-		::CloseHandle( m_hDev );
-		m_hDev = NULL;
 	}
 }
 
@@ -302,6 +317,7 @@ void CBonTuner::ReadRegChannels (HKEY hPKey)
 
 const BOOL CBonTuner::TransmitCard(BYTE* trans_buf, const int trans_size, BYTE* const recv_buf, const int recv_buf_size, int* const recv_bytes)
 {
+	if(NULL == pDev) return FALSE;
 	return it9175_transmitCard(pDev, trans_buf, trans_size, recv_buf, recv_buf_size, recv_bytes);
 }
 
